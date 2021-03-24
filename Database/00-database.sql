@@ -4,10 +4,36 @@ if schema_id('api') is null begin
 end
 go
 
+if (user_id('webuser') is null) begin
+	create user webuser with password = 'WEB_US3r|Passw0rd!'
+end
+go
+
+grant execute on schema::api to [webuser]
+go
+
 drop sequence if exists dbo.cart_id_generator;
 create sequence dbo.cart_id_generator
 as bigint start with 1 increment by 1;
 go
+
+drop table if exists api.scale_out_replica;
+create table api.scale_out_replica
+(
+	[database_name] sysname not null unique,
+	[enabled] bit not null default(0)
+)
+go
+
+create or alter procedure [api].[get_available_scale_out_replicas]
+as
+select
+	[database_name]
+from
+	[api].[scale_out_replica]
+where
+	[enabled] = 1
+go		
 
 drop table if exists dbo.shopping_cart;
 create table dbo.shopping_cart
@@ -27,7 +53,9 @@ create or alter procedure api.put_shopping_cart
 @payload nvarchar(max)
 as
 set nocount on;
+
 declare @cart_id bigint = next value for dbo.cart_id_generator;
+
 insert into dbo.shopping_cart
 	([cart_id], [user_id], [item_id], [quantity], [price], [item_details], [added_on])
 select 
@@ -53,7 +81,7 @@ cross apply
 go
 
 create or alter procedure api.get_shopping_cart
-@cart_id bigint
+@id bigint
 as
 set nocount on;
 select top (1)
@@ -74,6 +102,7 @@ select top (1)
 from 
 	dbo.shopping_cart c
 where
-	cart_id = @cart_id
+	cart_id = @id
 for json auto, without_array_wrapper
 go
+

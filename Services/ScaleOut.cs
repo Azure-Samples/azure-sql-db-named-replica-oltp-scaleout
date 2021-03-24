@@ -11,7 +11,13 @@ namespace AzureSamples.AzureSQL.Services
 {
     public interface IScaleOut
     {
-        string GetConnectionString(string connectionType);
+        string GetConnectionString(ConnectionIntent connectionIntent);
+    }
+
+    public enum ConnectionIntent
+    {
+        Read,
+        Write
     }
 
     public class ScaleOut : IScaleOut
@@ -25,13 +31,13 @@ namespace AzureSamples.AzureSQL.Services
         {
             _logger = logger;
             _config = config;           
-            _lastConnectionString = _config.GetConnectionString("ReaderConnection");             
+            _lastConnectionString = _config.GetConnectionString("AzureSQLConnection");             
         }
 
-        public string GetConnectionString(string connectionType)
+        public string GetConnectionString(ConnectionIntent connectionIntent)
         {
-            if (connectionType == "WriterConnection") 
-                return _config.GetConnectionString("WriterConnection");
+            if (connectionIntent == ConnectionIntent.Write) 
+                return _config.GetConnectionString("AzureSQLConnection");
 
             string result = string.Empty;
             var elapsed = DateTime.Now - _lastCall;
@@ -41,12 +47,12 @@ namespace AzureSamples.AzureSQL.Services
             if (elapsed.TotalMilliseconds > rnd.Next(3500, 5500))
             {
                 var database = string.Empty;
-                var connString = _config.GetConnectionString("ReaderConnection");
+                var connString = _config.GetConnectionString("AzureSQLConnection");
 
                 using (var conn = new SqlConnection(connString))
                 {
                     var databases = conn.Query<string>(
-                        sql: "api.GetAvailableScaleOutReplicas",
+                        sql: "api.get_available_scale_out_replicas",
                         commandType: CommandType.StoredProcedure
                     ).AsList();
                     
@@ -61,7 +67,7 @@ namespace AzureSamples.AzureSQL.Services
                 var csb = new SqlConnectionStringBuilder(connString);
                 if (!string.IsNullOrEmpty(database))
                     csb.InitialCatalog = database;
-                csb.ApplicationIntent = ApplicationIntent.ReadOnly;
+                //csb.ApplicationIntent = ApplicationIntent.ReadOnly;
                 result = csb.ConnectionString;
 
                 _lastCall = DateTime.Now;

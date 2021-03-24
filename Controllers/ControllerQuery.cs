@@ -14,84 +14,62 @@ using System.Diagnostics;
 
 namespace AzureSamples.AzureSQL.Controllers
 {
+    public enum Verb
+    {
+        Get,
+        Put
+    }
+
     public class ControllerQuery : ControllerBase
     {
         private readonly ILogger<ControllerQuery> _logger;
         private readonly IConfiguration _config;
         private readonly IScaleOut _scaleOut;
+        private readonly string _entityName = string.Empty ;
 
-        public ControllerQuery(IConfiguration config, ILogger<ControllerQuery> logger, IScaleOut scaleOut)
+        public ControllerQuery(IConfiguration config, ILogger<ControllerQuery> logger, IScaleOut scaleOut, string entityName)
         {
             _logger = logger;
             _config = config;
             _scaleOut = scaleOut;
+            _entityName = entityName;
         }
 
-        protected async Task<List<int>> ExecuteRead(string procedure, object parameters)
+        protected async Task<JsonDocument> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement))
         {
-            return await Execute(procedure, parameters, "ReaderConnection");
-        }
+            JsonDocument result = null;
 
-        protected async Task<List<int>> ExecuteWrite(string procedure, object parameters)
-        {
-            return await Execute(procedure, parameters, "WriterConnection");
-        }
+            var connectionIntent = (verb == Verb.Get) ? ConnectionIntent.Read : ConnectionIntent.Write;
 
-        private async Task<List<int>> Execute(string procedure, object parameters, string connectionType)
-        {
-            var connStr = _scaleOut.GetConnectionString(connectionType);            
-            var sb = new SqlConnectionStringBuilder(connStr);
-            var sqlLogin = sb.UserID;
-            var sqlDatabase = sb.InitialCatalog;            
+            string procedure = $"api.{verb.ToString().ToLower()}_{_entityName}";
+            _logger.LogDebug($"Executing {procedure}");
 
-            using (var conn = new SqlConnection(connStr))
-            {
-                if (_logger.IsEnabled(LogLevel.Debug))
+            using(var conn = new SqlConnection(_scaleOut.GetConnectionString(connectionIntent))) {
+                DynamicParameters parameters = new DynamicParameters();
+
+                if (payload.ValueKind != default(JsonValueKind))
                 {
-                    var LogExecution = new Action<Dictionary<string, object>>((d) => {
-                        var l = new List<string>();
-                        foreach (var kv in d)
-                        {
-                            l.Add($"{kv.Key}={kv.Value}");
-                        }
-                        var ps = string.Join(", ", l.ToArray());
-                        _logger.LogInformation($"{sqlLogin}@{sqlDatabase}: dbo.[CDB_{procedure}] {ps}");
-                    });
-
-                    if (parameters is Dictionary<string, object>)
-                    {
-                        var d = parameters as Dictionary<string, object>;
-                        LogExecution(d);
-                    }
-
-                    if (parameters is List<Dictionary<string, object>>)
-                    {
-                        var l = parameters as List<Dictionary<string, object>>;
-                        l.ForEach(d => LogExecution(d));
-                    }
+                    var json = JsonSerializer.Serialize(payload);
+                    parameters.Add("Payload", json);
                 }
 
-                var sw = new Stopwatch();
-                
-                sw.Start();
-                var gr = await conn.ExecuteAsync(
-                    sql: $"dbo.[CDB_{procedure}]",
-                    param: parameters,
+                if (id.HasValue)
+                    parameters.Add("Id", id.Value);
+
+                var qr = await conn.ExecuteScalarAsync<string>(
+                    sql: procedure, 
+                    param: parameters, 
                     commandType: CommandType.StoredProcedure
                 );
-                sw.Stop();
-
-                var result = new List<int>();
-                result.Add((int)(sw.ElapsedMilliseconds));
-                /*
-                while(!gr.IsConsumed)
-                {
-                    var s = gr.Read();
-                    result.Add(s.AsList().Count());
-                }
-                */
-                return result;
+                
+                if (qr != null)
+                    result = JsonDocument.Parse(qr);
             };
-        }
+
+            if (result == null) 
+                result = JsonDocument.Parse("[]");
+                        
+            return result;
+        }        
     }
 }
