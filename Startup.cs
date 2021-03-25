@@ -31,7 +31,7 @@ namespace AzureSamples.AzureSQL
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "azure_sql_db_named_replica_oltp_scaleout", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shopping Cart", Version = "v1" });
             });
         }
 
@@ -42,7 +42,7 @@ namespace AzureSamples.AzureSQL
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "azure_sql_db_named_replica_oltp_scaleout v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shopping Cart v1"));
             }
 
             app.UseHttpsRedirection();

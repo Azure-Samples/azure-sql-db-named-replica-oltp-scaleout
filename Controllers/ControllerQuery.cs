@@ -56,14 +56,14 @@ namespace AzureSamples.AzureSQL.Controllers
                 if (id.HasValue)
                     parameters.Add("Id", id.Value);
 
-                var qr = await conn.ExecuteScalarAsync<string>(
+                var esr = await conn.ExecuteScalarAsync<string>(
                     sql: procedure, 
                     param: parameters, 
                     commandType: CommandType.StoredProcedure
                 );
                 
-                if (qr != null)
-                    result = JsonDocument.Parse(qr);
+                if (esr != null)
+                    result = JsonDocument.Parse(esr);
             };
 
             if (result == null) 
