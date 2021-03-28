@@ -11,7 +11,7 @@ using AzureSamples.AzureSQL.Services;
 namespace AzureSamples.AzureSQL.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("shopping_cart")]
     public class ShoppingCartController : ControllerQuery
     {
         public ShoppingCartController(IConfiguration config, ILogger<ShoppingCartController> logger, IScaleOut scaleOut):

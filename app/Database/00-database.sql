@@ -38,7 +38,7 @@ go
 drop table if exists dbo.shopping_cart;
 create table dbo.shopping_cart
 (
-	[row_id] int identity not null primary key,
+	[row_id] int identity not null primary key nonclustered,
 	[cart_id] bigint not null,
 	[user_id] int not null,
 	[item_id] int not null,
@@ -47,6 +47,9 @@ create table dbo.shopping_cart
 	[item_details] nvarchar(max) not null check (isjson(item_details) = 1),
 	[added_on] datetime2 not null
 )
+go
+
+create clustered index ixc on dbo.shopping_cart([cart_id])
 go
 
 create or alter procedure api.put_shopping_cart

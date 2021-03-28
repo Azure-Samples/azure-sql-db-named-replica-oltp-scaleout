@@ -45,14 +45,14 @@ az webapp create \
     -n $AppName \
     --plan "windows-plan" \
     --runtime "DOTNET|5.0" \
-    --deployment-source-url $gitSource \
-    --deployment-source-branch perftest
+    --deployment-local-git \
+    --deployment-source-branch main
 
 echo "Configuring Connection String...";
 az webapp config connection-string set \
     -g $ResourceGroup \
     -n $AppName \
-    --settings ReadWriteConnection=$ConnectionStrings__AzureSQLConnection \
+    --settings AzureSQLConnection=$ConnectionStrings__AzureSQLConnection \
     --connection-string-type=SQLAzure
 
 echo "Done."
