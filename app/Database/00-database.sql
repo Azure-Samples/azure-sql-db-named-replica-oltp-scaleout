@@ -101,6 +101,8 @@ select ((
 				dbo.shopping_cart as items
 			where
 				items.cart_id = c.cart_id
+			and
+				items.cart_id = @id
 			for json path
 		)) as items
 	from 
@@ -111,3 +113,29 @@ select ((
 )) as json_result;
 go
 
+create procedure [api].[get_shopping_cart_by_package]
+@id bigint
+as
+set nocount on;
+select ((
+	select top (1)
+		c.cart_id,
+		c.[user_id],
+		json_query((
+			select
+				item_id as 'id',
+				quantity,
+				price,
+				json_query(item_details) as 'details'
+			from
+				dbo.shopping_cart as items
+			where
+				items.cart_id = c.cart_id
+			for json path
+		)) as items
+	from 
+		dbo.shopping_cart c
+	where
+		cast(json_value(item_details, '$.package.id') as int) = @id
+	for json auto
+)) as json_result;

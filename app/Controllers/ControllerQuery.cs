@@ -35,13 +35,14 @@ namespace AzureSamples.AzureSQL.Controllers
             _entityName = entityName;
         }
 
-        protected async Task<JsonDocument> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement))
+        protected async Task<JsonDocument> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement), string extension = default(string))
         {
             JsonDocument result = null;
 
             var connectionIntent = (verb == Verb.Get) ? ConnectionIntent.Read : ConnectionIntent.Write;
 
-            string procedure = $"api.{verb.ToString().ToLower()}_{_entityName}";
+            extension = (extension == default(string)) ? string.Empty : "_" + extension;
+            string procedure = $"api.{verb.ToString().ToLower()}_{_entityName}{extension}";
             _logger.LogDebug($"Executing {procedure}");
 
             using(var conn = new SqlConnection(_scaleOut.GetConnectionString(connectionIntent))) {

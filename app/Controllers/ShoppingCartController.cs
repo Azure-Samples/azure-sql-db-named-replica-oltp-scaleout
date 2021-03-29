@@ -23,6 +23,12 @@ namespace AzureSamples.AzureSQL.Controllers
             return await this.Query(Verb.Get, id);
         }
 
+        [HttpGet("package/{id}")]
+        public async Task<JsonDocument> GetByPackage(int id)
+        {
+            return await this.Query(Verb.Get, id, extension: "by_package");
+        }
+
         [HttpPut]
         public async Task<JsonDocument> Put([FromBody]JsonElement payload)
         {
