@@ -1,3 +1,4 @@
+/* Note: Connect to "dm-nr-oltp" database */
 
 if schema_id('api') is null begin
 	exec('create schema api authorization dbo');
