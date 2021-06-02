@@ -8,17 +8,17 @@ Faker.seed(0)
 class ShoppingCartUser(HttpUser):
     wait_time = between(0.5, 1)
 
-    @task(8)
-    def get(self):
+    @task(60)
+    def get_by_id(self):
         id = fake.random_int(1, 10000)
         self.client.get(f"/shopping_cart/{id}", name='/shopping_cart/{id}')
 
-    @task(4)
-    def get(self):
+    @task(20)
+    def get_by_package_id(self):
         id = fake.random_int(1, 10000)
         self.client.get(f"/shopping_cart/package/{id}", name='/shopping_cart/package/{id}')
 
-    @task(2)
+    @task(20)
     def put(self):
         user_id = fake.random_int(1, 1000000) 
         payload = {
@@ -36,13 +36,13 @@ class ShoppingCartUser(HttpUser):
                     "price": price,
                     "details": dict()           
                 }
-            for i in range(fake.random_int(1,10)):
-                key = fake.lexify("?" * fake.random_int(3,7))
-                value = fake.lexify("?" * fake.random_int(3,100))
+            for i in range(fake.random_int(1, 10)):
+                key = fake.lexify("?" * fake.random_int(3, 7))
+                value = fake.lexify("?" * fake.random_int(3, 100))
                 item["details"][key] = value
                 if i >= 7:
                     item["details"]["package"] = dict()
-                    item["details"]["package"]["id"] = fake.random_int(1,10000)
+                    item["details"]["package"]["id"] = fake.random_int(1, 10000)
             payload["items"].append(item)
 
         self.client.put("/shopping_cart", json=payload)

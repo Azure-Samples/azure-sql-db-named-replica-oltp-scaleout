@@ -13,7 +13,7 @@ else
 HOST="https://jsonplaceholder.typicode.com"
 TEST_CLIENTS=1
 USERS_PER_CLIENT=1
-HATCH_RATE=1
+SPAWN_RATE=1
 RESOURCE_GROUP=""
 AZURE_STORAGE_ACCOUNT=""
 EOF
@@ -22,7 +22,7 @@ EOF
 	echo "and run the script again."
 	echo "TEST_CLIENTS: Number of locust client to create"
 	echo "USERS_PER_CLIENT: Number of users that each locust client will simulate"
-	echo "HATCH_RATE: How many new users will be created per second per locust client"
+	echo "SPAWN_RATE: How many new users will be created per second per locust client"
 	echo "HOST: REST Endpoint to test"
 	echo "RESOURCE_GROUP: Resource group where Locust will be deployed"
 	echo "AZURE_STORAGE_ACCOUNT: Storage account name that will be created to host the locust file"
@@ -32,6 +32,8 @@ fi
 echo "starting"
 cat << EOF > log.txt
 EOF
+
+echo "using resource group: $RESOURCE_GROUP" | tee -a log.txt
 
 echo "creating storage account: $AZURE_STORAGE_ACCOUNT" | tee -a log.txt
 az storage account create -n $AZURE_STORAGE_ACCOUNT -g $RESOURCE_GROUP --sku Standard_LRS \
@@ -45,11 +47,11 @@ az storage share create -n locust --connection-string $AZURE_STORAGE_CONNECTION_
 	-o json >> log.txt
 
 echo 'uploading simulator scripts' | tee -a log.txt
-az storage file upload -s locust --source locustfile.py --connection-string $AZURE_STORAGE_CONNECTION_STRING \
+az storage file upload-batch --destination locust --source locust --connection-string $AZURE_STORAGE_CONNECTION_STRING --pattern *.py \
     -o json >> log.txt
 
 echo "deploying locust ($TEST_CLIENTS clients)..." | tee -a log.txt
-LOCUST_MONITOR=$(az group deployment create -g $RESOURCE_GROUP \
+LOCUST_MONITOR=$(az deployment group create -g $RESOURCE_GROUP \
 	--template-file locust-arm-template.json \
 	--parameters \
 		host=$HOST \
@@ -65,9 +67,9 @@ echo "locust: endpoint: $LOCUST_MONITOR" | tee -a log.txt
 
 echo "locust: starting ..." | tee -a log.txt
 declare USER_COUNT=$(($USERS_PER_CLIENT*$TEST_CLIENTS))
-declare HATCH_RATE=$(($HATCH_RATE*$TEST_CLIENTS))
-echo "locust: users: $USER_COUNT, hatch rate: $HATCH_RATE"
-curl -fsL $LOCUST_MONITOR/swarm -X POST -F "locust_count=$USER_COUNT" -F "hatch_rate=$HATCH_RATE" >> log.txt
+declare SPAWN_RATE=$(($SPAWN_RATE*$TEST_CLIENTS))
+echo "locust: users: $USER_COUNT, spawn rate: $SPAWN_RATE"
+curl -fsL $LOCUST_MONITOR/swarm -X POST -F "user_count=$USER_COUNT" -F "spawn_rate=$SPAWN_RATE" >> log.txt
 
 echo "locust: monitor available at: $LOCUST_MONITOR" | tee -a log.txt
 
