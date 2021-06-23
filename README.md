@@ -1,57 +1,94 @@
-# Project Name
+# Azure SQL Database Hyperscale Named Replicas OLTP Scale-Out Sample
 
-(short, 1-3 sentenced, description of the project)
+This sample shows how you can use Azure SQL Database Hyperscale Named Replicas to easily scale-out an OLTP solution.
 
-## Features
+## Scenario
 
-This project framework provides the following features:
+The code in the `./app` folder provide a REST endpoint that implements a basic shopping cart API. The REST endpoint has three methods:
 
-* Feature 1
-* Feature 2
-* ...
+- `GET /{id}`: return a JSON document containing a user shopping cart
+- `GET /package/{id}`: return all the shopping carts that contains a package with the specified `id` value
+- `PUT /`: store the received JSON document containing a user shopping cart
 
-## Getting Started
+### Shopping Cart
 
-### Prerequisites
+The shopping cart is a JSON document, generated randomly, with this schema:
 
-(ideally very short, if any)
+```json
+{
+    "cart_id": <cart_id>,
+    "user_id": <user_id>,
+    "items":[{
+        "id": <item_id>,
+        "quantity": <quantity>,
+        "price": <price>,
+        "details": {
+            <random attributes>,
+            "package": {    
+                "id": <package_id>
+            }
+        }
+    }]
+}
+```
 
-- OS
-- Library version
-- ...
+The number of items is random and can be up to 10. The details of each item in the shopping cart are also randomly generated. The `package` object is also randomly added to some item.
+Here's an example of a generated shopping cart JSON document:
 
-### Installation
+```json
+{
+    "cart_id": 17,
+    "user_id": 34851,
+    "items": [,
+         {
+            "id": 5306,
+            "quantity": 8,
+            "price": 683.7700,
+            "details": {
+                "scyOQ": "kkJaPOdmwvQFvLEDNhXCACjBMRKOVwgvxoCHMqCORMRgZTLOkBLcRaq",
+                "troG": "gSoTExi",
+                "fVWdI": "zqCrSZUaPBMWxAALvAcnBHIXxesnQHIUOYkBWIpITfFLpJAlcZorPDRXZUihHRrSHuLjvGJKQWgUuMpZXr"
+            }
+        }        
+        {
+            "id": 7884,
+            "quantity": 10,
+            "price": 199.9600,
+            "details": {
+                "Mtjf": "EOgJjIlOkjWfEQpUePUwFyFxttnjKpZKwqCiYAwzCDnLyKLvfYOMpsFSprQdpwsSeCIbQYOOyaCUnu",
+                "IJUybP": "jLdRhFzZuNkHDxmTQGovxAbtNQQNbSVdEBvsptWWjRihAsGzBRpCVJhvDkalCOwpwtyzEZRwdHzbRmBfzZmsMQYRzrPFY",
+                "AiDiQ": "ZRCnVgq",
+                "UdJSfHF": "uRGSVQcgVVpimfgLbfhOhIttoXsVdCdDBLPzfoBMYEuetJsPumtxzesBakwVvTWlMRpmVEHbTxCtuSzjTKdAlvY",
+                "erUs": "pXDU",
+                "tsssjH": "hESyhXmcfECkZ",
+                "wHAGD": "QUbgrLxTXhbsClSgdBoTBlKbVcGGpW",
+                "uJYQn": "HUNpGJWLnuUSZZBosldMqqWdeg",
+                "package": {
+                    "id": 3064
+                }
+            }
+        }
+    ]
+}
+```
 
-(ideally very short)
+### Database
 
-- npm install [package name]
-- mvn install
-- ...
+Received JSON document is saved into the `dbo.shopping_cart` table. The well-know elements are saved into proper relational columns to have the best performance possible, while the item details, being completely dynamic, are stored as a JSON document.
 
-### Quickstart
-(Add steps to get up and running quickly)
+The scripts to create the database and to created the required objects are available in the `./app/Database` folder.
 
-1. git clone [repository clone url]
-2. cd [respository name]
-3. ...
+## Deploy the app
 
+Use the script `./app/azure-deploy.sh` to deploy the REST API in Azure. You can use WSL2 (script has been tested on WSL2 Ubuntu 20) or the Azure Cloud Shell.
 
-## Demo
+## Create some workload
 
-A demo app is included to show how to use the project.
+To simulate a typical shopping cart activity, where new shopping cart are created and retrieved, the open source load testing tool [Locust](https://locust.io) is used. The test solution is available in the `./test` folder and the load test script is `./test/locust/locustfile.py`.
 
-To run the demo, follow these steps:
+Locust can be run locally or via Docker. Even better, can be run directly on Azure via Azure Container Instances, to avoid any potential network or resource bottleneck that can be found when running on local environments.
 
-(Add steps to start up the demo)
+To deploy and run Locust in Azure, use the `./test/azure-deploy.sh` script.
+## Scalability Challenges
 
-1.
-2.
-3.
-
-## Resources
-
-(Any additional resources or related projects)
-
-- Link to supporting information
-- Link to similar sample
-- ...
+Coming soon....

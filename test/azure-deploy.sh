@@ -20,10 +20,10 @@ EOF
 	echo "Enviroment file not detected."
 	echo "Please configure values for your environment in the created .env file"
 	echo "and run the script again."
+	echo "HOST: REST Endpoint to test"
 	echo "TEST_CLIENTS: Number of locust client to create"
 	echo "USERS_PER_CLIENT: Number of users that each locust client will simulate"
 	echo "SPAWN_RATE: How many new users will be created per second per locust client"
-	echo "HOST: REST Endpoint to test"
 	echo "RESOURCE_GROUP: Resource group where Locust will be deployed"
 	echo "AZURE_STORAGE_ACCOUNT: Storage account name that will be created to host the locust file"
 	exit 1
