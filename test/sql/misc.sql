@@ -1,6 +1,6 @@
 /* In MASTER */
 alter database [dm-hs-test]
-add secondary on server [ansinh-stgsvr-ea.sqltest-eg1.mscds.com]
+add secondary on server [myserver]
 with (secondary_type = Named, database_name = [dm-hs-test-ea-ro-02])
 go
 
