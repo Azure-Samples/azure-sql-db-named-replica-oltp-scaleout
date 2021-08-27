@@ -125,7 +125,7 @@ Creating a new Named Replicas is very easy and happens in just an handful of sec
 ```sql
 alter database <your-source-database>
 add secondary on server <your-source-server>
-with (secondary_type = Named, database_name = <destination-database-name>)
+with (secondary_type = Named, database_name = <replica-database-name>)
 ```
 
 The provided sample application has been written so that it can direct read and write workloads to different servers. The `ScaleOut` class contains the code in charge of deciding to which database a request should be sent to. It asks the master database what are the available replicas by calling the stored procedure `api.get_available_scale_out_replicas` and it will send any read operation to one of the available named replicas, if any, otherwise will send the request to the  primary replica.
@@ -136,7 +136,7 @@ So, to inform that application that you have a new Named Replica available and t
 insert into api.[scale_out_replica] 
     ([database_name], [enabled])
 values 
-    ('dm-nr-oltp-ro-01', 1)
+    ('<replica-database-name>', 1)
 ```
 
 Done. Now the application will send all read request to the newly created named replica, using the primary replica only for serving the write requests. 
