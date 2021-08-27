@@ -55,4 +55,9 @@ az webapp config connection-string set \
     --settings AzureSQLConnection=$ConnectionStrings__AzureSQLConnection \
     --connection-string-type=SQLAzure
 
+echo "Getting hostname..."
+url=`az webapp show -g $ResourceGroup -n $AppName --query "defaultHostName" -o tsv`
+
+echo "WebApp deployed at: https://$url"
+
 echo "Done."

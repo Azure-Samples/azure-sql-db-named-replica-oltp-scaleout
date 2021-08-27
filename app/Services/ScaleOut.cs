@@ -44,6 +44,7 @@ namespace AzureSamples.AzureSQL.Services
 
             var rnd = new Random();
 
+            // Add some randomness to avoid the "thundering herd" problem
             if (elapsed.TotalMilliseconds > rnd.Next(3500, 5500))
             {
                 var database = string.Empty;
@@ -67,7 +68,7 @@ namespace AzureSamples.AzureSQL.Services
                 var csb = new SqlConnectionStringBuilder(connString);
                 if (!string.IsNullOrEmpty(database))
                     csb.InitialCatalog = database;
-                //csb.ApplicationIntent = ApplicationIntent.ReadOnly;
+                
                 result = csb.ConnectionString;
 
                 _lastCall = DateTime.Now;
