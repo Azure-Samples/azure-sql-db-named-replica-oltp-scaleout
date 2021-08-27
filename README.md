@@ -1,4 +1,32 @@
+---
+page_type: sample
+languages:
+- tsql
+- sql
+- csharp
+products:
+- azure-sql-database
+- azure
+- dotnet
+- dotnet-core
+- azure-app-service-web
+- azure-api-apps
+- azure-container-instances
+description: "Use Azure SQL Database Hyperscale Named Replicas to easily scale-out a REST API OLTP solution."
+urlFragment: azure-sql-db-named-replica-oltp-scaleout
+---
+
 # Azure SQL Database Hyperscale Named Replicas OLTP Scale-Out Sample
+
+<!-- 
+Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
+
+Guidance on onboarding samples to docs.microsoft.com/samples: https://review.docs.microsoft.com/help/onboard/admin/samples/process/onboarding?branch=master
+
+Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
+-->
+
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 This sample shows how you can use Azure SQL Database Hyperscale Named Replicas to easily scale-out an OLTP solution.
 
