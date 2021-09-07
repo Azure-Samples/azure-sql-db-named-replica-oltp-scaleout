@@ -19,20 +19,26 @@ namespace AzureSamples.AzureSQL.Controllers
 
         [HttpGet("{id}")]
         public async Task<JsonDocument> Get(int id)
-        {
-            return await this.Query(Verb.Get, id);
+        {            
+            var (result, replica) = await this.Query(Verb.Get, id);
+            HttpContext.Response.Headers.Add("Replica-Name", replica);
+            return result;
         }
 
         [HttpGet("package/{id}")]
         public async Task<JsonDocument> GetByPackage(int id)
         {
-            return await this.Query(Verb.Get, id, extension: "by_package");
+            var (result, replica) = await this.Query(Verb.Get, id, extension: "by_package");
+            HttpContext.Response.Headers.Add("Replica-Name", replica);
+            return result;
         }
 
         [HttpPut]
         public async Task<JsonDocument> Put([FromBody]JsonElement payload)
         {
-            return await this.Query(Verb.Put, payload: payload);
+            var (result, replica) = await this.Query(Verb.Put, payload: payload);
+            HttpContext.Response.Headers.Add("Replica-Name", replica);
+            return result;
         }
     }
 }

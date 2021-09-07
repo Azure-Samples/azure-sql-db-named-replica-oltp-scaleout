@@ -25,14 +25,12 @@ namespace AzureSamples.AzureSQL.Services
         private readonly IConfiguration _config;
         private readonly ILogger<ScaleOut> _logger;
         private DateTime _lastCall = DateTime.Now;
-        private string _lastConnectionString = string.Empty;
         private List<String> _replicaConnectionString = new List<String>();
 
         public ScaleOut(IConfiguration config, ILogger<ScaleOut> logger)
         {
             _logger = logger;
-            _config = config;           
-            _lastConnectionString = _config.GetConnectionString("AzureSQLConnection");             
+            _config = config;                       
         }
 
         public string GetConnectionString(ConnectionIntent connectionIntent)
@@ -49,6 +47,8 @@ namespace AzureSamples.AzureSQL.Services
             // Add some randomness to avoid the "thundering herd" problem
             if (elapsed.TotalMilliseconds > rnd.Next(3500, 5500))
             {
+                _logger.LogDebug($"Loading available replicas");
+
                 var database = string.Empty;
                 var connString = _config.GetConnectionString("AzureSQLConnection");
 
@@ -78,7 +78,9 @@ namespace AzureSamples.AzureSQL.Services
             {
                 var i = rnd.Next(_replicaConnectionString.Count);
                 result = _replicaConnectionString[i];
-            }                                    
+            } else {
+                result = _config.GetConnectionString("AzureSQLConnection");
+            }                          
 
             return result;
         }

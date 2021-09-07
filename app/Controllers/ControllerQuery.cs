@@ -35,7 +35,7 @@ namespace AzureSamples.AzureSQL.Controllers
             _entityName = entityName;
         }
 
-        protected async Task<JsonDocument> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement), string extension = default(string))
+        protected async Task<(JsonDocument, String)> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement), string extension = default(string))
         {
             JsonDocument result = null;
 
@@ -45,9 +45,13 @@ namespace AzureSamples.AzureSQL.Controllers
             string procedure = $"api.{verb.ToString().ToLower()}_{_entityName}{extension}";
             _logger.LogDebug($"Executing {procedure}");
 
-            using(var conn = new SqlConnection(_scaleOut.GetConnectionString(connectionIntent))) {
-                DynamicParameters parameters = new DynamicParameters();
+            string databaseName = string.Empty;
 
+            using(var conn = new SqlConnection(_scaleOut.GetConnectionString(connectionIntent))) {
+                databaseName = conn.Database;
+
+                DynamicParameters parameters = new DynamicParameters();
+                
                 if (payload.ValueKind != default(JsonValueKind))
                 {
                     var json = JsonSerializer.Serialize(payload);
@@ -70,7 +74,7 @@ namespace AzureSamples.AzureSQL.Controllers
             if (result == null) 
                 result = JsonDocument.Parse("[]");
                         
-            return result;
+            return (result, databaseName);
         }        
     }
 }
