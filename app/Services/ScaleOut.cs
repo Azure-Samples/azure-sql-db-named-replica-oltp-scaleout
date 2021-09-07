@@ -26,6 +26,7 @@ namespace AzureSamples.AzureSQL.Services
         private readonly ILogger<ScaleOut> _logger;
         private DateTime _lastCall = DateTime.Now;
         private string _lastConnectionString = string.Empty;
+        private List<String> _replicaConnectionString = new List<String>();
 
         public ScaleOut(IConfiguration config, ILogger<ScaleOut> logger)
         {
@@ -44,6 +45,7 @@ namespace AzureSamples.AzureSQL.Services
 
             var rnd = new Random();
 
+            // Get the list of available named replica from the primary replica
             // Add some randomness to avoid the "thundering herd" problem
             if (elapsed.TotalMilliseconds > rnd.Next(3500, 5500))
             {
@@ -57,25 +59,26 @@ namespace AzureSamples.AzureSQL.Services
                         commandType: CommandType.StoredProcedure
                     ).AsList();
                     
-                    if (databases.Count > 0)
+                    _replicaConnectionString = new List<string>();
+                    foreach(var d in databases)
                     {
-                        var i = rnd.Next(databases.Count);
-                        database = databases[i];
-                        _logger.LogDebug(database);
+                        var csb = new SqlConnectionStringBuilder(connString);
+                        if (!string.IsNullOrEmpty(d))
+                            csb.InitialCatalog = d;
+                        
+                        _replicaConnectionString.Add(csb.ToString());
                     }
+
+                    _lastCall = DateTime.Now;
                 }            
-
-                var csb = new SqlConnectionStringBuilder(connString);
-                if (!string.IsNullOrEmpty(database))
-                    csb.InitialCatalog = database;
-                
-                result = csb.ConnectionString;
-
-                _lastCall = DateTime.Now;
-                _lastConnectionString = result;
-            } else {
-                result = _lastConnectionString;
             }
+                
+            // Get a connection string randomly
+            if (_replicaConnectionString.Count > 0)
+            {
+                var i = rnd.Next(_replicaConnectionString.Count);
+                result = _replicaConnectionString[i];
+            }                                    
 
             return result;
         }
