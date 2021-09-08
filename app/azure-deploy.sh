@@ -45,7 +45,7 @@ az webapp create \
     -n $AppName \
     --plan "windows-plan" \
     --runtime "DOTNET|5.0" \
-    --deployment-local-git \
+    --deployment-source-url $gitSource\
     --deployment-source-branch main
 
 echo "Configuring Connection String...";
