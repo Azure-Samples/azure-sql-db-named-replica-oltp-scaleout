@@ -45,6 +45,7 @@ namespace AzureSamples.AzureSQL.Services
 
             // Get the list of available named replica from the primary replica
             // Add some randomness to avoid the "thundering herd" problem
+            // in case there are many concurrent instances of this web app running
             if (elapsed.TotalMilliseconds > rnd.Next(3500, 5500))
             {
                 _logger.LogDebug($"Loading available replicas");
