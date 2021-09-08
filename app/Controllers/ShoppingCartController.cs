@@ -21,7 +21,7 @@ namespace AzureSamples.AzureSQL.Controllers
         public async Task<JsonDocument> Get(int id)
         {            
             var (result, replica) = await this.Query(Verb.Get, id);
-            HttpContext.Response.Headers.Add("Replica-Name", replica);
+            HttpContext.Response.Headers.Add("Used-Replica-Name", replica);
             return result;
         }
 
@@ -29,7 +29,7 @@ namespace AzureSamples.AzureSQL.Controllers
         public async Task<JsonDocument> GetByPackage(int id)
         {
             var (result, replica) = await this.Query(Verb.Get, id, extension: "by_package");
-            HttpContext.Response.Headers.Add("Replica-Name", replica);
+            HttpContext.Response.Headers.Add("Used-Replica-Name", replica);
             return result;
         }
 
@@ -37,7 +37,7 @@ namespace AzureSamples.AzureSQL.Controllers
         public async Task<JsonDocument> Put([FromBody]JsonElement payload)
         {
             var (result, replica) = await this.Query(Verb.Put, payload: payload);
-            HttpContext.Response.Headers.Add("Replica-Name", replica);
+            HttpContext.Response.Headers.Add("Used-Replica-Name", replica);
             return result;
         }
     }

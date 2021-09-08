@@ -25,6 +25,7 @@ namespace AzureSamples.AzureSQL.Services
         private readonly IConfiguration _config;
         private readonly ILogger<ScaleOut> _logger;
         private DateTime _lastCall = DateTime.Now;
+        private Random _rnd = new Random();
         private List<String> _replicaConnectionString = new List<String>();
 
         public ScaleOut(IConfiguration config, ILogger<ScaleOut> logger)
@@ -39,16 +40,14 @@ namespace AzureSamples.AzureSQL.Services
                 return _config.GetConnectionString("AzureSQLConnection");
 
             string result = string.Empty;
-            var elapsed = DateTime.Now - _lastCall;
-
-            var rnd = new Random();
+            var elapsed = DateTime.Now - _lastCall;            
 
             // Get the list of available named replica from the primary replica
             // Add some randomness to avoid the "thundering herd" problem
             // in case there are many concurrent instances of this web app running
-            if (elapsed.TotalMilliseconds > rnd.Next(3500, 5500))
+            if (elapsed.TotalMilliseconds > _rnd.Next(3500, 5500))
             {
-                _logger.LogDebug($"Loading available replicas");
+                _logger.LogDebug($"Loading available replicas...");
 
                 var database = string.Empty;
                 var connString = _config.GetConnectionString("AzureSQLConnection");
@@ -60,7 +59,8 @@ namespace AzureSamples.AzureSQL.Services
                         commandType: CommandType.StoredProcedure
                     ).AsList();
                     
-                    _replicaConnectionString = new List<string>();
+                    _replicaConnectionString = new List<string>();                    
+
                     foreach(var d in databases)
                     {
                         var csb = new SqlConnectionStringBuilder(connString);
@@ -71,13 +71,14 @@ namespace AzureSamples.AzureSQL.Services
                     }
 
                     _lastCall = DateTime.Now;
+                    _logger.LogDebug($"Got {_replicaConnectionString.Count} replicas.");
                 }            
             }
                 
             // Get a connection string randomly
             if (_replicaConnectionString.Count > 0)
-            {
-                var i = rnd.Next(_replicaConnectionString.Count);
+            {                
+                var i = _rnd.Next(_replicaConnectionString.Count);
                 result = _replicaConnectionString[i];
             } else {
                 result = _config.GetConnectionString("AzureSQLConnection");
