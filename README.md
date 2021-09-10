@@ -169,6 +169,10 @@ Once this is done, the RPS will go up to 200 RPS, as desired.
 
 The sample shows how it is possible to architect an application to take advantage of several database replicas, by including in the code a simple - but smart - routing mechanism. By abstracting the access to the database to a base class (`ControllerQuery`) and an helper service (`ScaleOut`) the code is lean and clean and very easy to maintain and evolve.
 
+### A note on costs
+
+Named replicas are charged at the same amount of a database using the [Azure Hybrid Benefits](https://azure.microsoft.com/pricing/hybrid-benefit/), so you can expect quite a [substantial saving compared to regular databases](https://azure.microsoft.com/en-us/pricing/details/azure-sql-database/single/). As a result, architecting a solution to take advantage of scaling-out a database instead of scaling up, can help to have great performance at a lower overall TCO.
+
 ## Improvements
 
 The provided sample is very basic, and can be improved in several ways. For example, instead of just sending the write operations to the primary and the read operations to the named replicas, a bit more complex routing logic can be created. For example, it could be possible to route the request based on the workload type:
