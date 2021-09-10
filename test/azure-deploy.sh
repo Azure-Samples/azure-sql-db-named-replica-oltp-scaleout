@@ -71,6 +71,6 @@ declare SPAWN_RATE=$(($SPAWN_RATE*$TEST_CLIENTS))
 echo "locust: users: $USER_COUNT, spawn rate: $SPAWN_RATE"
 curl -fsL $LOCUST_MONITOR/swarm -X POST -F "user_count=$USER_COUNT" -F "spawn_rate=$SPAWN_RATE" >> log.txt
 
-echo "locust: monitor available at: $LOCUST_MONITOR" | tee -a log.txt
+echo "locust: master available at: $LOCUST_MONITOR" | tee -a log.txt
 
 echo "done" | tee -a log.txt

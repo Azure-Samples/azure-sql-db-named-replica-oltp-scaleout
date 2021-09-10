@@ -1,4 +1,4 @@
-/* Note: Connect to "dm-nr-oltp" database */
+/* Note: Connect to "nroltp" database */
 
 if schema_id('api') is null begin
 	exec('create schema api authorization dbo');
@@ -51,6 +51,13 @@ create table dbo.shopping_cart
 go
 
 create clustered index ixc on dbo.shopping_cart([cart_id])
+go
+
+alter table dbo.[shopping_cart]
+add package_id as cast(json_value(item_details, '$.package.id') as int)
+go
+
+create nonclustered index ix1 on dbo.[shopping_cart] (package_id)
 go
 
 create or alter procedure api.put_shopping_cart
@@ -114,7 +121,7 @@ select ((
 )) as json_result;
 go
 
-create procedure [api].[get_shopping_cart_by_package]
+create or alter procedure [api].[get_shopping_cart_by_package]
 @id bigint
 as
 set nocount on;
