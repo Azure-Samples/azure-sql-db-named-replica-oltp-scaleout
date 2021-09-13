@@ -13,6 +13,11 @@ class ShoppingCartUser(HttpUser):
         id = fake.random_int(1, 10000)
         self.client.get(f"/shopping_cart/{id}", name='/shopping_cart/{id}')
 
+    @task(10)
+    def get_by_search(self):
+        term = fake.lexify("????")
+        self.client.get(f"/shopping_cart/search/{term}", name='/shopping_cart/search/{id}')
+
     @task(20)
     def get_by_package_id(self):
         id = fake.random_int(1, 10000)
