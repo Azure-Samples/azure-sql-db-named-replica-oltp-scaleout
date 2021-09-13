@@ -11,7 +11,7 @@ namespace AzureSamples.AzureSQL.Services
 {
     public interface IScaleOut
     {
-        string GetConnectionString(ConnectionIntent connectionIntent);
+        string GetConnectionString(ConnectionIntent connectionIntent, string tag);
     }
 
     public enum ConnectionIntent
@@ -22,11 +22,17 @@ namespace AzureSamples.AzureSQL.Services
 
     public class ScaleOut : IScaleOut
     {
+        private class ReplicaInfo
+        {
+            public string Tag;
+            public string DatabaseName;
+        }
+
         private readonly IConfiguration _config;
         private readonly ILogger<ScaleOut> _logger;
         private DateTime _lastCall = DateTime.Now;
         private Random _rnd = new Random();
-        private List<String> _replicaConnectionString = new List<String>();
+        private Dictionary<string, List<String>> _replicaConnectionString = new Dictionary<string, List<String>>();
 
         public ScaleOut(IConfiguration config, ILogger<ScaleOut> logger)
         {
@@ -34,10 +40,13 @@ namespace AzureSamples.AzureSQL.Services
             _config = config;                       
         }
 
-        public string GetConnectionString(ConnectionIntent connectionIntent)
+        public string GetConnectionString(ConnectionIntent connectionIntent, string tag = default(string))
         {
             if (connectionIntent == ConnectionIntent.Write) 
                 return _config.GetConnectionString("AzureSQLConnection");
+
+            if (tag == default(string)) 
+                tag = "GenericRead";
 
             string result = string.Empty;
             var elapsed = DateTime.Now - _lastCall;            
@@ -54,33 +63,45 @@ namespace AzureSamples.AzureSQL.Services
 
                 using (var conn = new SqlConnection(connString))
                 {
-                    var databases = conn.Query<string>(
+                    var replicaInfoList = conn.Query<ReplicaInfo>(
                         sql: "api.get_available_scale_out_replicas",
                         commandType: CommandType.StoredProcedure
                     ).AsList();
                     
-                    _replicaConnectionString = new List<string>();                    
+                    _replicaConnectionString = new Dictionary<string, List<string>>();
 
-                    foreach(var d in databases)
+                    foreach(var ri in replicaInfoList)
                     {
                         var csb = new SqlConnectionStringBuilder(connString);
-                        if (!string.IsNullOrEmpty(d))
-                            csb.InitialCatalog = d;
+                        if (!string.IsNullOrEmpty(ri.DatabaseName))
+                            csb.InitialCatalog = ri.DatabaseName;
                         
-                        _replicaConnectionString.Add(csb.ToString());
+                        if (!_replicaConnectionString.ContainsKey(ri.Tag))
+                            _replicaConnectionString.Add(ri.Tag, new List<string>());
+
+                        _replicaConnectionString[ri.Tag].Add(csb.ToString());                        
                     }
 
                     _lastCall = DateTime.Now;
-                    _logger.LogDebug($"Got {_replicaConnectionString.Count} replicas.");
+                    _logger.LogDebug($"Got {replicaInfoList.Count} replicas over {_replicaConnectionString.Count} tags.");
                 }            
             }
                 
+            // Get the list of available connection strings based on requested tag
+            List<string> connectionStringList = null;
+            _replicaConnectionString.TryGetValue(tag, out connectionStringList);
+
+            // Fall back to GenericRead tag if requested tag is not found
+            if (connectionStringList == null)
+                _replicaConnectionString.TryGetValue("GenericRead", out connectionStringList);
+            
             // Get a connection string randomly
-            if (_replicaConnectionString.Count > 0)
-            {                
-                var i = _rnd.Next(_replicaConnectionString.Count);
-                result = _replicaConnectionString[i];
-            } else {
+            if (connectionStringList != null && connectionStringList.Count > 0)
+            {
+                var i = _rnd.Next(connectionStringList.Count);
+                result = connectionStringList[i];
+            }
+            else {
                 result = _config.GetConnectionString("AzureSQLConnection");
             }                          
 

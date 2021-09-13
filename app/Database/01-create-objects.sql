@@ -22,18 +22,21 @@ drop table if exists api.scale_out_replica;
 create table api.scale_out_replica
 (
 	[database_name] sysname not null unique,
-	[enabled] bit not null default(0)
+	[enabled] bit not null default(0),
+	[tag] sysname not null default('GenericRead') check ([tag] in ('GenericRead', 'Search', 'Reporting', 'SingletonLookup'))
 )
 go
 
 create or alter procedure [api].[get_available_scale_out_replicas]
 as
 select
-	[database_name]
+	[tag] as Tag, [database_name] as DatabaseName
 from
 	[api].[scale_out_replica]
 where
 	[enabled] = 1
+order by
+	Tag
 go		
 
 drop table if exists dbo.shopping_cart;

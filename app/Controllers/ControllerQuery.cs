@@ -35,7 +35,7 @@ namespace AzureSamples.AzureSQL.Controllers
             _entityName = entityName;
         }
 
-        protected async Task<(JsonDocument, String)> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement), string extension = default(string))
+        protected async Task<(JsonDocument, String)> Query(Verb verb, int? id = null, JsonElement payload = default(JsonElement), string extension = default(string), string tag = "GenericRead")
         {
             JsonDocument result = null;
 
@@ -43,11 +43,11 @@ namespace AzureSamples.AzureSQL.Controllers
 
             extension = (extension == default(string)) ? string.Empty : "_" + extension;
             string procedure = $"api.{verb.ToString().ToLower()}_{_entityName}{extension}";
-            _logger.LogDebug($"Executing {procedure}");
+            _logger.LogDebug($"Executing {procedure}, tag: {tag}");
 
             string databaseName = string.Empty;
 
-            using(var conn = new SqlConnection(_scaleOut.GetConnectionString(connectionIntent))) {
+            using(var conn = new SqlConnection(_scaleOut.GetConnectionString(connectionIntent, tag))) {
                 databaseName = conn.Database;
 
                 DynamicParameters parameters = new DynamicParameters();
@@ -74,6 +74,8 @@ namespace AzureSamples.AzureSQL.Controllers
             if (result == null) 
                 result = JsonDocument.Parse("[]");
                         
+            _logger.LogDebug($"Executed {procedure}, tag: {tag}, on: {databaseName}");
+
             return (result, databaseName);
         }        
     }
