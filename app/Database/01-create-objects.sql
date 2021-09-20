@@ -1,23 +1,29 @@
 /* Note: Connect to "nroltp" database */
 
+-- create schema
 if schema_id('api') is null begin
 	exec('create schema api authorization dbo');
 end
 go
 
+-- create user to be used by API to connect to Azure SQL
+-- *NOTE*: for demo purposes only! Use MSI if possible!
 if (user_id('webuser') is null) begin
 	create user webuser with password = 'WEB_US3r|Passw0rd!'
 end
 go
 
+-- grant execute to all (and only!) "api" stored procedures 
 grant execute on schema::api to [webuser]
 go
 
+-- create sequence
 drop sequence if exists dbo.cart_id_generator;
 create sequence dbo.cart_id_generator
 as bigint start with 1 increment by 1;
 go
 
+-- create replica metadata table
 drop table if exists api.scale_out_replica;
 create table api.scale_out_replica
 (
@@ -27,6 +33,7 @@ create table api.scale_out_replica
 )
 go
 
+-- create procedure to return available replicas
 create or alter procedure [api].[get_available_scale_out_replicas]
 as
 select
@@ -39,6 +46,7 @@ order by
 	Tag
 go		
 
+-- create shopping cart table
 drop table if exists dbo.shopping_cart;
 create table dbo.shopping_cart
 (
@@ -53,16 +61,21 @@ create table dbo.shopping_cart
 )
 go
 
+-- index the cart_id which is the commonly used search criteria
 create clustered index ixc on dbo.shopping_cart([cart_id])
 go
 
+-- create a computed column to allow JSON property 
+-- $.package.id, when existing, to be more easily queried and indexed
 alter table dbo.[shopping_cart]
 add package_id as cast(json_value(item_details, '$.package.id') as int)
 go
 
+-- create index on promoted JSON property
 create nonclustered index ix1 on dbo.[shopping_cart] (package_id)
 go
 
+-- create procedure to do a "PUT" in the shopping cart
 create or alter procedure api.put_shopping_cart
 @payload nvarchar(max)
 as
@@ -94,6 +107,7 @@ cross apply
 	) as i
 go
 
+-- create procedure to do a "GET" from the shopping cart
 create or alter procedure api.get_shopping_cart
 @id bigint
 as
@@ -124,6 +138,7 @@ select ((
 )) as json_result;
 go
 
+-- create procedure to do a "GET" from the shopping cart via package id
 create or alter procedure [api].[get_shopping_cart_by_package]
 @id bigint
 as
@@ -150,3 +165,45 @@ select ((
 		cast(json_value(item_details, '$.package.id') as int) = @id
 	for json auto
 )) as json_result;
+go
+
+-- create procedure to do search in shopping carts
+/*
+Accepted JSON: 
+{"term": "%search-term%"}
+*/
+create or alter procedure [api].[get_shopping_cart_by_search]
+@payload nvarchar(max)
+as
+set nocount on;
+
+if (isjson(@payload) <> 1) begin;
+	throw 50000, 'Payload is not a valid JSON document', 16;
+end;
+
+select ((
+	select 
+		c.cart_id,
+		c.[user_id],
+		json_query((
+			select
+				item_id as 'id',
+				quantity,
+				price,
+				json_query(item_details) as 'details'
+			from
+				dbo.shopping_cart as items
+			where
+				items.cart_id = c.cart_id
+			for json path
+		)) as items
+	from 
+		dbo.shopping_cart c
+	where
+		item_details like json_value(@payload, '$.term')
+	for json auto
+)) as json_result;
+go
+
+
+
