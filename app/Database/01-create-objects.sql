@@ -50,7 +50,7 @@ go
 drop table if exists dbo.shopping_cart;
 create table dbo.shopping_cart
 (
-	[row_id] int identity not null primary key nonclustered,
+	[row_id] int identity not null constraint pk__shopping_cart primary key nonclustered,
 	[cart_id] bigint not null,
 	[user_id] int not null,
 	[item_id] int not null,
@@ -73,6 +73,13 @@ go
 
 -- create index on promoted JSON property
 create nonclustered index ix1 on dbo.[shopping_cart] (package_id)
+go
+
+-- create full text catalog to help JSON search
+create fulltext catalog ftMain as default;
+create fulltext index on dbo.shopping_cart(item_details) key index pk__shopping_cart on ftMain;
+alter fulltext index on dbo.shopping_cart enable;
+alter fulltext index on dbo.shopping_cart start full population;
 go
 
 -- create procedure to do a "PUT" in the shopping cart
@@ -181,6 +188,9 @@ if (isjson(@payload) <> 1) begin;
 	throw 50000, 'Payload is not a valid JSON document', 16;
 end;
 
+declare @term nvarchar(100)
+set @term = json_value(@payload, '$.term')
+
 select ((
 	select 
 		c.cart_id,
@@ -200,10 +210,11 @@ select ((
 	from 
 		dbo.shopping_cart c
 	where
-		item_details like json_value(@payload, '$.term')
+		contains(item_details, @term) and json_value(item_details, '$.' + @term) is not null
 	for json auto
 )) as json_result;
 go
+
 
 
 
