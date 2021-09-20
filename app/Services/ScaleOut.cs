@@ -24,8 +24,8 @@ namespace AzureSamples.AzureSQL.Services
     {
         private class ReplicaInfo
         {
-            public string Tag;
-            public string DatabaseName;
+            public string Tag = default(string);
+            public string DatabaseName = default(string);
         }
 
         private readonly IConfiguration _config;
