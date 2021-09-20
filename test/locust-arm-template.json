@@ -35,7 +35,7 @@
         }
     },
     "variables": {
-        "image": "yorek/locust:1.5.3",
+        "image": "yorek/locust:2.2.3",
         "cpuCores": "1",
         "masterMemoryInGb": "2",
         "clientMemoryInGb": "2",
