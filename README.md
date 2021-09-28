@@ -145,9 +145,9 @@ This scenario can be easily created using [Azure SQL Database Hyperscale named r
 You can create up to 30 named replicas, that you can use to handle read workloads. Creating a new Named Replicas is very easy and happens in just an handful of seconds:
 
 ```sql
-alter database <your-source-database>
-add secondary on server <your-source-server>
-with (secondary_type = Named, database_name = <replica-database-name>)
+alter database [<your-source-database>]
+add secondary on server [<your-source-server>]
+with (secondary_type = Named, database_name = [<replica-database-name>])
 ```
 
 The provided sample application has been written so that it can direct read and write workloads to different servers. The `ScaleOut` class contains the code in charge of deciding to which database a request should be sent to. It asks to the primary replica what are the available replicas by calling the stored procedure `api.get_available_scale_out_replicas` and it will send any read operation to one of the available named replicas, if any, otherwise will send the request to the  primary replica.
