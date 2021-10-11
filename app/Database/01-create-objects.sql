@@ -76,6 +76,9 @@ create nonclustered index ix1 on dbo.[shopping_cart] (package_id)
 go
 
 -- create full text catalog to help JSON search
+if exists(select * from sys.[fulltext_catalogs] where [name] = 'ftMain') begin
+	drop fulltext catalog ftMain;
+end;
 create fulltext catalog ftMain as default;
 create fulltext index on dbo.shopping_cart(item_details) key index pk__shopping_cart on ftMain;
 alter fulltext index on dbo.shopping_cart enable;
