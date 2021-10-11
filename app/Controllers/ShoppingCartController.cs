@@ -36,7 +36,7 @@ namespace AzureSamples.AzureSQL.Controllers
         [HttpGet("search/{term}")]
         public async Task<JsonDocument> SearchByTerm(String term)
         {            
-            var payload = JsonDocument.Parse(JsonSerializer.Serialize(new { term = "%" + term + "%" }));
+            var payload = JsonDocument.Parse(JsonSerializer.Serialize(new { term = term }));
 
             var (result, replica) = await this.Query(Verb.Get, payload: payload.RootElement, extension: "by_search", tag: "Search");
             HttpContext.Response.Headers.Add("Used-Replica-Name", replica);
