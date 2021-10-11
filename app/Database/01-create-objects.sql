@@ -81,8 +81,8 @@ if exists(select * from sys.[fulltext_catalogs] where [name] = 'ftMain') begin
 end;
 create fulltext catalog ftMain as default;
 create fulltext index on dbo.shopping_cart(item_details) key index pk__shopping_cart on ftMain;
+alter fulltext index on dbo.shopping_cart set change_tracking auto;
 alter fulltext index on dbo.shopping_cart enable;
-alter fulltext index on dbo.shopping_cart start full population;
 go
 
 -- create procedure to do a "PUT" in the shopping cart
