@@ -28,7 +28,7 @@ Taxonomies for products and languages: https://review.docs.microsoft.com/new-hop
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-This sample shows how you can use Azure SQL Database Hyperscale Named Replicas to take advantage of ability to scale-out the database in an OLTP solution.
+This sample shows how you can use [Azure SQL Database Hyperscale Named Replicas](https://docs.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale-replicas?tabs=tsql) to take advantage of ability to scale-out the database in an OLTP solution.
 
 ## Recording
 
