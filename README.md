@@ -28,7 +28,15 @@ Taxonomies for products and languages: https://review.docs.microsoft.com/new-hop
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-This sample shows how you can use Azure SQL Database Hyperscale Named Replicas to take advantage of ability to scale-out the database in an OLTP solution.
+This sample shows how you can use [Azure SQL Database Hyperscale Named Replicas](https://docs.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale-replicas?tabs=tsql) to take advantage of ability to scale-out the database in an OLTP solution.
+
+## Recording
+
+Recording of a session dedicated to this example is available here: 
+
+![Youtube Recording](./assets/scaleoutability-session-2.jpg)
+
+https://www.youtube.com/watch?v=VewaG1n1tbg
 
 ## Scenario
 
@@ -190,6 +198,6 @@ You may be wondering how much the Azure SQL HS_Gen5_2 you have used in the sampl
 
 while the Locust client was almost at 80% of its resources:
 
-![Azure SQL CPU Usage](./assets/Screenshot-001.png)
+![Test Client SQL CPU Usage](./assets/Screenshot-001.png)
 
 If you want learn more about this and see how a small 4 vCores database can serve up to 10K request per second, go here: [10K RPS REST API with Azure SQL, Dapper and JSON](https://dev.to/azure/10k-rps-rest-api-with-azure-sql-dapper-and-json-3me2)
