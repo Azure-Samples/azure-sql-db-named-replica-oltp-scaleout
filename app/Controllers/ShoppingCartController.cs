@@ -28,7 +28,7 @@ namespace AzureSamples.AzureSQL.Controllers
         [HttpGet("package/{id}")]
         public async Task<JsonDocument> GetByPackage(int id)
         {
-            var (result, replica) = await this.Query(Verb.Get, id, extension: "by_package", tag: "Search");
+            var (result, replica) = await this.Query(Verb.Get, id, extension: "by_package", tag: "PackageSearch");
             HttpContext.Response.Headers.Add("Used-Replica-Name", replica);
             return result;
         }

@@ -85,38 +85,6 @@ alter fulltext index on dbo.shopping_cart set change_tracking auto;
 alter fulltext index on dbo.shopping_cart enable;
 go
 
--- create procedure to do a "PUT" in the shopping cart
-create or alter procedure api.put_shopping_cart
-@payload nvarchar(max)
-as
-set nocount on;
-
-declare @cart_id bigint = next value for dbo.cart_id_generator;
-
-insert into dbo.shopping_cart
-	([cart_id], [user_id], [item_id], [quantity], [price], [item_details], [added_on])
-select 
-	@cart_id,
-	c.[user_id], 
-	i.[item_id],
-	i.[quantity],
-	i.[price],
-	i.[item_details],
-	sysdatetime()
-from 
-	openjson(@payload) with	(
-		[user_id] int, 
-		[items] nvarchar(max) as json
-	) as c
-cross apply
-	openjson(c.[items]) with (
-		[item_id] int '$.id',
-		[quantity] int,
-		[price] decimal(10,4),
-		[item_details] nvarchar(max) '$.details' as json 
-	) as i
-go
-
 -- create procedure to do a "GET" from the shopping cart
 create or alter procedure api.get_shopping_cart
 @id bigint
@@ -146,6 +114,40 @@ select ((
 		cart_id = @id
 	for json auto, without_array_wrapper
 )) as json_result;
+go
+
+-- create procedure to do a "PUT" in the shopping cart
+create or alter procedure api.put_shopping_cart
+@payload nvarchar(max)
+as
+set nocount on;
+
+declare @cart_id bigint = next value for dbo.cart_id_generator;
+
+insert into dbo.shopping_cart
+	([cart_id], [user_id], [item_id], [quantity], [price], [item_details], [added_on])
+select 
+	@cart_id,
+	c.[user_id], 
+	i.[item_id],
+	i.[quantity],
+	i.[price],
+	i.[item_details],
+	sysdatetime()
+from 
+	openjson(@payload) with	(
+		[user_id] int, 
+		[items] nvarchar(max) as json
+	) as c
+cross apply
+	openjson(c.[items]) with (
+		[item_id] int '$.id',
+		[quantity] int,
+		[price] decimal(10,4),
+		[item_details] nvarchar(max) '$.details' as json 
+	) as i;
+	
+exec [api].[get_shopping_cart] @cart_id
 go
 
 -- create procedure to do a "GET" from the shopping cart via package id
@@ -195,7 +197,7 @@ declare @term nvarchar(100)
 set @term = json_value(@payload, '$.term')
 
 select ((
-	select 
+	select distinct 
 		c.cart_id,
 		c.[user_id],
 		json_query((
