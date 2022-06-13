@@ -182,7 +182,9 @@ go
 -- create procedure to do search in shopping carts
 /*
 Accepted JSON: 
-{"term": "%search-term%"}
+  {"term": "%search-term%"}
+or
+  {"term": "%search-term%", "value": "<value>"}
 */
 create or alter procedure [api].[get_shopping_cart_by_search]
 @payload nvarchar(max)
@@ -193,9 +195,9 @@ if (isjson(@payload) <> 1) begin;
 	throw 50000, 'Payload is not a valid JSON document', 16;
 end;
 
-declare @term nvarchar(100), @value nvarchar(100);
-set @term = json_value(@payload, '$.term');
-set @value= json_value(@payload, '$.value');
+declare @term nvarchar(100) = json_value(@payload, '$.term');
+declare @termft nvarchar(100) = replace(@term, '.', ' AND ');
+declare @value nvarchar(100) = json_value(@payload, '$.value');
 
 select ((
 	select distinct 
@@ -216,7 +218,7 @@ select ((
 	from 
 		dbo.shopping_cart c
 	where
-		contains(item_details, @term) 
+		contains(item_details, @termft) 
 	and 
 		json_value(item_details, '$.' + @term) is not null 
 	and
@@ -224,7 +226,6 @@ select ((
 	for json auto
 )) as json_result;
 go
-
 
 
 
