@@ -40,11 +40,17 @@ https://www.youtube.com/watch?v=VewaG1n1tbg
 
 ## Scenario
 
-The code in the `./app` folder provide a REST endpoint that implements a basic shopping cart API. The REST endpoint has three methods:
+The code in the `./app` folder provide REST endpoint that implements a basic shopping cart API. The REST endpoint has three methods:
 
 - `GET /{id}`: return a JSON document containing a user shopping cart
 - `GET /package/{id}`: return all the shopping carts that contains a package with the specified `id` value
 - `PUT /`: store the received JSON document containing a user shopping cart
+
+and can be reachead at the `/shopping_cart` path. For example:
+
+```
+https://<my-app>.azurewebsites.net/shopping_cart/1
+```
 
 ### Shopping Cart
 
