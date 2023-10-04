@@ -8,7 +8,6 @@ products:
 - azure-sql-database
 - azure
 - dotnet
-- dotnet-core
 - azure-app-service-web
 - azure-api-apps
 - azure-container-instances
