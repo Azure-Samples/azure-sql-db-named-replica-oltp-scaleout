@@ -8,9 +8,7 @@ products:
 - azure-sql-database
 - azure
 - dotnet
-- dotnet-core
-- azure-app-service-web
-- azure-api-apps
+- azure-app-service
 - azure-container-instances
 description: "Use Azure SQL Database Hyperscale Named Replicas to easily scale-out a REST API OLTP solution."
 urlFragment: azure-sql-db-named-replica-oltp-scaleout
